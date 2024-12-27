@@ -1,40 +1,51 @@
 import React, { useState } from 'react';
-import { View, TextInput, Text, StyleSheet, Alert, Image, TouchableOpacity } from 'react-native';
-import img from '../assets/medicare.png'
+import {
+  View,
+  TextInput,
+  Text,
+  StyleSheet,
+  Alert,
+  Image,
+  TouchableOpacity,
+  Dimensions,
+  SafeAreaView,
+  Platform,
+} from 'react-native';
+import img from '../assets/medicare.png';
 
-export default function LoginScreen({navigation}) {
-
+export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleSubmit = async() => {
-     try {
-      
-     } catch (error) {
-       alert(error)
-     }
-    
+  const handleSubmit = async () => {
+    try {
+      Alert.alert('Login Submitted', `Email: ${email}, Password: ${password}`);
+    } catch (error) {
+      Alert.alert('Error', error.message);
+    }
   };
 
-  const handleForgetNavigate = async()=>{
-    
-  }
+  const handleForgetNavigate = async () => {
+    try {
+      navigation.navigate('Register');
+    } catch (error) {
+      Alert.alert('Error', error.message);
+    }
+  };
 
   return (
-    <View style={styles.content}>
+    <SafeAreaView style={styles.container}>
       {/* Top Section */}
-      
-
-      <View style={styles.logo_container}>
-        <Image source={img} style={styles.logo} />
+      <View style={styles.logoContainer}>
+        <Image source={img} style={styles.logo} resizeMode="contain" />
       </View>
 
-      <View style={styles.header_container}>
-        <Text style={styles.header_text}>Welcome to the MediConnect</Text> 
+      <View style={styles.headerContainer}>
+        <Text style={styles.headerText}>Welcome to MediConnect</Text>
       </View>
 
       {/* Form Section */}
-      <View style={styles.form_container}>
+      <View style={styles.formContainer}>
         <Text style={styles.label}>Email</Text>
         <TextInput
           style={styles.input}
@@ -50,61 +61,61 @@ export default function LoginScreen({navigation}) {
           placeholder="Enter your password"
           value={password}
           onChangeText={setPassword}
-          secureTextEntry={true}
-        />       
-        
-         <TouchableOpacity style={styles.forget_button} onPress={handleForgetNavigate}>
-         <Text style={styles.Forget_pw}>Forget Password ? </Text>
-        </TouchableOpacity>
-        {/* Custom Submit Button */}
-        <TouchableOpacity style={styles.submit_button} onPress={handleSubmit}>
-          <Text style={styles.submit_button_text}>Submit</Text>
-        </TouchableOpacity>
-      </View>
+          secureTextEntry
+        />
 
-    </View>
+        <TouchableOpacity style={styles.forgetButton}>
+          <Text style={styles.forgetText}>Forget Password?</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
+          <Text style={styles.submitButtonText}>Submit</Text>
+        </TouchableOpacity>
+
+        <View style={styles.signupContainer}>
+          <Text>
+            Don't have an account?{' '}
+            <Text style={styles.signupButton} onPress={handleForgetNavigate}>
+              Sign Up
+            </Text>
+          </Text>
+        </View>
+      </View>
+    </SafeAreaView>
   );
 }
 
+const { width, height } = Dimensions.get('window');
+
 const styles = StyleSheet.create({
-  content: {
+  container: {
     flex: 1,
-    alignItems: 'center',      
+    alignItems: 'center',
     padding: 20,
     backgroundColor: '#f5f5f5',
   },
-
-  header_container: {
-    marginBottom: 0,
-    marginTop:50,
+  logoContainer: {
+    width: '80%',
+    height: height * 0.2,
+    marginTop: height * 0.05,
+  },
+  logo: {
+    width: '100%',
+    height: '100%',
+  },
+  headerContainer: {
+    marginTop: height * 0.02,
     alignItems: 'center',
   },
-
-  header_text: {
+  headerText: {
     color: '#333',
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 10,
+    textAlign: 'center',
   },
-
-  header_subText: {
-    color: '#666',
-    fontSize: 16,
-  },
-
-  logo_container: {
-    marginTop: 50,
-    width:350,
-    // backgroundColor:"red"
-  },
-
-  logo: {
-   width:350,
-   height:120 
-  },
-
-  form_container: {
-    width: '100%',
+  formContainer: {
+    width: '90%',
     padding: 20,
     backgroundColor: '#fff',
     borderRadius: 10,
@@ -113,16 +124,14 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 3,
     elevation: 3,
-    marginTop: 30,
+    marginTop: height * 0.05,
   },
-
   label: {
     marginBottom: 8,
     fontSize: 16,
     color: '#333',
     fontWeight: 'bold',
   },
-
   input: {
     height: 40,
     borderColor: '#ccc',
@@ -132,26 +141,31 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: '#f9f9f9',
   },
-
-  submit_button: {
-    backgroundColor: '#3498db',  // Blue background for the button
+  forgetButton: {
+    alignSelf: 'flex-end',
+  },
+  forgetText: {
+    color: '#3498db',
+    fontSize: 12,
+  },
+  submitButton: {
+    backgroundColor: '#3498db',
     paddingVertical: 12,
     borderRadius: 8,
     alignItems: 'center',
     marginTop: 10,
   },
-
-  submit_button_text: {
-    color: '#fff',              // White text
+  submitButtonText: {
+    color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
   },
-
-  Forget_pw:{
-    color: '#000',  // Blue text
-    fontSize: 12,
-    textAlign: 'right',
-  }
-
-
+  signupContainer: {
+    marginTop: 20,
+    alignItems: 'center',
+  },
+  signupButton: {
+    color: '#3498db',
+    fontWeight: 'bold',
+  },
 });
