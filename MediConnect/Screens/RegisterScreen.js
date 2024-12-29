@@ -16,6 +16,7 @@ import {
   Animated,
 } from 'react-native';
 import img from '../assets/medicare.png';
+import axios from 'axios';
 
 export default function RegisterScreen({ navigation }) {
   const [name, setName] = useState('');
@@ -157,7 +158,16 @@ export default function RegisterScreen({ navigation }) {
     }
 
     try {
-      Alert.alert('Registration Successful', `Welcome to MediConnect, ${name}!`);
+
+      console.log(name , email , password , role);
+
+      const response = await axios.post("http://localhost:8080/api/v1/auth/register",{name , email , password , role})
+      console.log(response);
+      if(response.data.success){
+        alert("Registration Successful !")
+        navigation.navigate('Login');
+      }
+      
     } catch (error) {
       Alert.alert('Error', error.message);
     }

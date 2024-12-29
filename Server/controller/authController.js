@@ -1,4 +1,5 @@
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 const { authModel } = require("../models/authModel");
 
 const authController = async (req, res) => {
@@ -42,4 +43,56 @@ const authController = async (req, res) => {
   }
 };
 
-module.exports = { authController };
+const authLoginController = async(req,res)=>{
+  try {
+    console.log(req.body);
+    const {email , password} = req.body
+
+    const secretKey = process.env.SECRETE_KEY; // Make sure to store this in an environment variable
+    const options = {
+      expiresIn: '1h', // Token expiration time
+    };
+
+    const data = await authModel.findOne({email:email})
+
+    const payload = {
+      email: data.email,
+    };
+
+    if(!data){
+      return res.status(400).send({
+        success:false,
+        message:"User not found"
+      })
+    }
+
+    const isValidPassword = await bcrypt.compare(password , data.password)
+    if(!isValidPassword){
+      return res.status(400).send({
+        success:false,
+        message:"Invalid Password"
+      })
+    }
+
+    // Create the token
+    const jwtToken = jwt.sign(payload, secretKey, options);
+
+    return res.status(200).send({
+      success:true,
+      message:"Login Successfully",
+      data: {
+        user: data, 
+        token: jwtToken,
+      },
+    })
+    
+  } catch (error) {
+     res.status(400).send({
+       success:false,
+       message:"Have an error while login" 
+     }
+     )
+  }
+}
+
+module.exports = { authController , authLoginController };

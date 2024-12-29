@@ -1,3 +1,4 @@
+// LoginScreen.js
 import React, { useState } from 'react';
 import {
   View,
@@ -12,98 +13,208 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  Animated,
+  StatusBar,
 } from 'react-native';
 import img from '../assets/medicare.png';
+import axios from 'axios';
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [errors, setErrors] = useState({});
+  const [touched, setTouched] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const shakeAnimation = new Animated.Value(0);
+
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email) return 'Email is required';
+    if (!emailRegex.test(email)) return 'Please enter a valid email';
+    return '';
+  };
+
+  const validatePassword = (password) => {
+    if (!password) return 'Password is required';
+    if (password.length < 6) return 'Password must be at least 6 characters';
+    return '';
+  };
+
+  const validateField = (field) => {
+    let newErrors = { ...errors };
+    if (field === 'email') {
+      newErrors.email = validateEmail(email);
+    }
+    if (field === 'password') {
+      newErrors.password = validatePassword(password);
+    }
+    setErrors(newErrors);
+  };
+
+  const shakeError = () => {
+    Animated.sequence([
+      Animated.timing(shakeAnimation, {
+        toValue: 10,
+        duration: 100,
+        useNativeDriver: true
+      }),
+      Animated.timing(shakeAnimation, {
+        toValue: -10,
+        duration: 100,
+        useNativeDriver: true
+      }),
+      Animated.timing(shakeAnimation, {
+        toValue: 10,
+        duration: 100,
+        useNativeDriver: true
+      }),
+      Animated.timing(shakeAnimation, {
+        toValue: 0,
+        duration: 100,
+        useNativeDriver: true
+      })
+    ]).start();
+  };
 
   const handleSubmit = async () => {
-    try {
-      Alert.alert('Login Submitted', `Email: ${email}, Password: ${password}`);
-    } catch (error) {
-      Alert.alert('Error', error.message);
+    setTouched({ email: true, password: true });
+    const emailError = validateEmail(email);
+    const passwordError = validatePassword(password);
+
+    setErrors({
+      email: emailError,
+      password: passwordError
+    });
+
+    if (emailError || passwordError) {
+      shakeError();
+      return;
     }
+
+    setIsSubmitting(true);
+    try {
+      console.log(email,password);
+      const response = await axios.post("http://localhost:8080/api/v1/auth/login" , {email,password})
+      console.log(response);
+
+      if(response.data.success){
+        navigation.navigate('Home');
+      }
+      else{
+        alert('Error', 'Login failed. Please try again.');
+      }
+      
+    } catch (error) {
+       alert('Error', 'Login failed. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleForgotPassword = () => {
+    navigation.navigate('ForgotPassword');
   };
 
   const handleSignUpNavigate = () => {
     navigation.navigate('Register');
   };
 
+
+
   return (
-    <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="dark-content" backgroundColor="#F7FAFC" />
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.keyboardView}
       >
-        <ScrollView 
+        <ScrollView
           contentContainerStyle={styles.scrollContainer}
           showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
         >
           <View style={styles.logoContainer}>
-            <Image source={img} style={styles.logo} resizeMode="contain" />
+            <Image
+              source={img}
+              style={styles.logo}
+              resizeMode="contain"
+            />
           </View>
 
           <View style={styles.headerContainer}>
-            <Text style={styles.headerText}>Welcome to MediConnect</Text>
-            <Text style={styles.subHeaderText}>Sign in to continue</Text>
+            <Text style={styles.welcomeText}>Welcome Back!</Text>
+            <Text style={styles.subtitle}>Sign in to your account</Text>
           </View>
 
-          <View style={styles.formContainer}>
+          <Animated.View
+            style={[styles.formContainer, { transform: [{ translateX: shakeAnimation }] }]}
+          >
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Email</Text>
               <TextInput
-                style={styles.input}
-                placeholder="Enter your email"
+                style={[styles.input, touched.email && errors.email ? styles.inputError : null, email ? styles.inputFilled : null]}
                 value={email}
                 onChangeText={setEmail}
+                onBlur={() => validateField('email')}
+                placeholder="Enter your email"
                 keyboardType="email-address"
-                placeholderTextColor="#999"
-                autoCapitalize="none"
+                placeholderTextColor="#A0AEC0"
               />
+              {touched.email && errors.email && (
+                <Text style={styles.errorText}>{errors.email}</Text>
+              )}
             </View>
 
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Password</Text>
               <TextInput
-                style={styles.input}
-                placeholder="Enter your password"
+                style={[styles.input, touched.password && errors.password ? styles.inputError : null, password ? styles.inputFilled : null]}
                 value={password}
                 onChangeText={setPassword}
+                onBlur={() => validateField('password')}
+                placeholder="Enter your password"
                 secureTextEntry
-                placeholderTextColor="#999"
-                autoCapitalize="none"
+                placeholderTextColor="#A0AEC0"
               />
+              {touched.password && errors.password && (
+                <Text style={styles.errorText}>{errors.password}</Text>
+              )}
             </View>
 
-            <TouchableOpacity style={styles.forgetButton}>
-              <Text style={styles.forgetText}>Forgot Password?</Text>
+            <TouchableOpacity
+              style={styles.forgotPasswordButton}
+              onPress={handleForgotPassword}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity 
-              style={styles.submitButton} 
+            <TouchableOpacity
+              style={[styles.loginButton, isSubmitting && styles.loginButtonDisabled]}
               onPress={handleSubmit}
-              activeOpacity={0.8}
+              disabled={isSubmitting}
+              activeOpacity={0.9}
             >
-              <Text style={styles.submitButtonText}>Sign In</Text>
+              <Text style={styles.loginButtonText}>
+                {isSubmitting ? 'Signing In...' : 'Sign In'}
+              </Text>
             </TouchableOpacity>
 
             <View style={styles.dividerContainer}>
-              <View style={styles.divider} />
+              <View style={styles.dividerLine} />
               <Text style={styles.dividerText}>OR</Text>
-              <View style={styles.divider} />
+              <View style={styles.dividerLine} />
             </View>
 
-            <View style={styles.signupContainer}>
+            <View style={styles.signupPrompt}>
               <Text style={styles.signupText}>
-                Don't have an account?{' '}
-                <Text style={styles.signupButton} onPress={handleSignUpNavigate}>
-                  Sign Up
+                New to MediConnect?{' '}
+                <Text style={styles.signupLink} onPress={handleSignUpNavigate}>
+                  Create an account
                 </Text>
               </Text>
             </View>
-          </View>
+          </Animated.View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -113,126 +224,162 @@ export default function LoginScreen({ navigation }) {
 const { width, height } = Dimensions.get('window');
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#F7FAFC',
   },
   keyboardView: {
     flex: 1,
   },
   scrollContainer: {
     flexGrow: 1,
-    alignItems: 'center',
-    paddingVertical: 20,
     paddingHorizontal: 20,
+    paddingTop: height * 0.02,
+    paddingBottom: 24,
   },
   logoContainer: {
-    width: width * 0.8,
-    height: height * 0.15,
-    marginTop: height * 0.02,
     alignItems: 'center',
+    marginTop: height * 0.02,
+    marginBottom: height * 0.02,
   },
   logo: {
-    width: '100%',
-    height: '100%',
+    width: width * 0.6,
+    height: height * 0.12,
   },
   headerContainer: {
-    marginTop: height * 0.03,
-    marginBottom: height * 0.02,
     alignItems: 'center',
+    marginBottom: 32,
   },
-  headerText: {
-    fontSize: width > 375 ? 28 : 24,
+  welcomeText: {
+    fontSize: 32,
     fontWeight: 'bold',
-    color: '#2c3e50',
+    color: '#1A365D',
     marginBottom: 8,
+    textAlign: 'center',
   },
-  subHeaderText: {
-    fontSize: 16,
-    color: '#7f8c8d',
-    marginBottom: 10,
+  subtitle: {
+    fontSize: 18,
+    color: '#4A5568',
+    textAlign: 'center',
   },
   formContainer: {
-    width: '100%',
-    maxWidth: 400,
-    backgroundColor: '#fff',
-    borderRadius: 15,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
     padding: 24,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
     shadowOpacity: 0.1,
-    shadowRadius: 8,
+    shadowRadius: 12,
     elevation: 5,
   },
   inputGroup: {
-    marginBottom: 20,
+    marginBottom: 24,
   },
   label: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#2c3e50',
+    color: '#2D3748',
     marginBottom: 8,
+    marginLeft: 4,
   },
   input: {
-    height: 50,
-    backgroundColor: '#f8f9fa',
-    borderWidth: 1,
-    borderColor: '#e1e8ed',
-    borderRadius: 10,
-    paddingHorizontal: 15,
+    height: 56,
+    backgroundColor: '#F7FAFC',
+    paddingHorizontal: 16,
     fontSize: 16,
-    color: '#2c3e50',
+    color: '#2D3748',
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
+    borderRadius: 12,
   },
-  forgetButton: {
-    alignSelf: 'flex-end',
-    marginBottom: 20,
+  inputError: {
+    borderColor: '#E53E3E',
   },
-  forgetText: {
-    color: '#3498db',
+  inputFilled: {
+    backgroundColor: '#EDF2F7',
+  },
+  errorText: {
+    color: '#E53E3E',
     fontSize: 14,
+    marginTop: 6,
+    marginLeft: 4,
+    fontWeight: '500',
+  },
+  forgotPasswordButton: {
+    alignSelf: 'flex-end',
+    marginBottom: 24,
+  },
+  forgotPasswordText: {
+    color: '#4299E1',
+    fontSize: 15,
     fontWeight: '600',
   },
-  submitButton: {
-    backgroundColor: '#3498db',
-    height: 50,
-    borderRadius: 10,
+  loginButton: {
+    height: 56,
+    backgroundColor: '#4299E1',
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#3498db',
-    shadowOffset: { width: 0, height: 2 },
+    shadowColor: '#4299E1',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
     shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowRadius: 6,
+    elevation: 4,
   },
-  submitButtonText: {
-    color: '#fff',
+  loginButtonDisabled: {
+    backgroundColor: '#A0AEC0',
+    shadowOpacity: 0.1,
+  },
+  loginButtonText: {
+    color: '#FFFFFF',
     fontSize: 18,
     fontWeight: '600',
   },
   dividerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 20,
+    marginVertical: 24,
   },
-  divider: {
+  dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: '#e1e8ed',
+    backgroundColor: '#E2E8F0',
   },
   dividerText: {
     marginHorizontal: 10,
-    color: '#7f8c8d',
+    color: '#A0AEC0',
+    fontSize: 14,
     fontWeight: '600',
   },
-  signupContainer: {
+  googleButton: {
+    height: 56,
+    backgroundColor: '#DB4437',
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  googleButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  signupPrompt: {
+    marginTop: 24,
     alignItems: 'center',
   },
   signupText: {
-    fontSize: 16,
-    color: '#7f8c8d',
+    fontSize: 14,
+    color: '#4A5568',
   },
-  signupButton: {
-    color: '#3498db',
+  signupLink: {
+    color: '#4299E1',
     fontWeight: '600',
   },
 });
