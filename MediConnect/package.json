@@ -7,7 +7,7 @@
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web "
   },
   "dependencies": {
     "@expo/metro-runtime": "~4.0.0",
@@ -20,6 +20,7 @@
     "expo": "~52.0.15",
     "expo-linear-gradient": "~14.0.1",
     "expo-status-bar": "~2.0.0",
+    "http-proxy-middleware": "^3.0.3",
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "react-native": "0.76.3",
@@ -36,5 +37,6 @@
   "devDependencies": {
     "@babel/core": "^7.20.0"
   },
-  "private": true
+  "private": true,
+  "proxy": "https://www.communitybenefitinsight.org"
 }

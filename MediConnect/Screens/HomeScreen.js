@@ -1,4 +1,5 @@
-import React, { useEffect } from 'react';
+import axios from 'axios';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -40,26 +41,41 @@ const healthServices = [
   },
 ];
 
-export default function HomeScreen() {
+export default function HomeScreen({navigation}) {
+  const [hospitals, setHospitals] = useState([]);
+  const [totalReacts, setTotalReacts] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+
   const user = {
     name: 'John Doe',
     profilePic: require('../assets/splash.png'),
   };
 
   useEffect(() => {
-    const fetchMentalHealthProviders = async () => {
+    const fetchHospitals = async () => {
       try {
-        const response = await fetch('https://api.therapyroute.com/mental-health-providers');
+        const response = await fetch(
+          'https://www.communitybenefitinsight.org/api/get_hospitals.php?state=NC'
+        );
         const data = await response.json();
-        console.log(data);
-        
+
       } catch (error) {
-        console.error(error);
+        console.error('Error fetching data:', error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    fetchMentalHealthProviders();
+    fetchHospitals();
   }, []);
+
+  const handleSingleCard = async()=>{
+    try {
+      navigation.navigate('SingleCard')
+    } catch (error) {
+      alert("Have an error while navigate to single card")
+    }
+  }
 
   const ServiceCard = ({ title, image, description }) => (
     <TouchableOpacity style={styles.card} activeOpacity={0.7}>
@@ -67,9 +83,11 @@ export default function HomeScreen() {
       <View style={styles.cardContent}>
         <Text style={styles.cardTitle}>{title}</Text>
         <Text style={styles.cardDescription}>{description}</Text>
+        <TouchableOpacity onPress={handleSingleCard} >
         <View style={styles.cardButton}>
           <Text style={styles.buttonText}>Learn More</Text>
         </View>
+        </TouchableOpacity>
       </View>
     </TouchableOpacity>
   );

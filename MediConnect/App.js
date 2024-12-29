@@ -9,6 +9,8 @@ import RegisterScreen from './Screens/RegisterScreen';
 import SplashScreen from './Screens/SplashScreen';
 import ProfileScreen from './Screens/ProfileScreen'; // Create this screen
 import SettingsScreen from './Screens/SettingsScreen'; // Create this screen
+import EditProfileScreen from './Screens/EditProfileScreen';
+import SingleCardScreen from './Screens/SingleCardScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -52,6 +54,8 @@ export default function App() {
         <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
         <Stack.Screen name="Register" component={RegisterScreen} options={{ headerShown: false }} />
         <Stack.Screen name="Home" component={BottomTabs} options={{ headerShown: false }} />
+        <Stack.Screen name="EditProfile" component={EditProfileScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="SingleCard" component={SingleCardScreen} options={{ headerShown: true }} />
       </Stack.Navigator>
     </NavigationContainer>
   );
