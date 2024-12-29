@@ -1,0 +1,3 @@
+sasindu16941
+sasindusathiska
+mongodb+srv://sasindusathiska:<db_password>@cluster0.e4ojf.mongodb.net/
