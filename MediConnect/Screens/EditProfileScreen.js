@@ -19,15 +19,19 @@ import {
   Check,
 } from 'react-native-feather';
 
-export default function EditProfileScreen() {
+export default function EditProfileScreen({navigation}) {
   // Sample initial user data - replace with your actual user data
   const [formData, setFormData] = useState({
     name: 'John Doe',
     email: 'john.doe@example.com',
     phone: '+1 234 567 8900',
     location: 'New York, USA',
-    profilePic: require('../assets/splash.png'),
+    profilePic: require('../assets/men.jpg'),
   });
+
+  const handleCancel = async()=>{
+     navigation.navigate("Home")
+  }
 
   const InputField = ({ icon: Icon, label, value, onChangeText, placeholder }) => (
     <View style={styles.inputContainer}>
@@ -51,13 +55,10 @@ export default function EditProfileScreen() {
 
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.headerButton}>
+        <TouchableOpacity style={styles.headerButton} onPress={handleCancel} >
           <X stroke="#666666" width={24} height={24} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Edit Profile</Text>
-        <TouchableOpacity style={styles.headerButton}>
-          <Check stroke="#007AFF" width={24} height={24} />
-        </TouchableOpacity>
       </View>
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>

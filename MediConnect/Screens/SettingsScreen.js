@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useState } from 'react';
 import {
   View,
@@ -8,14 +9,41 @@ import {
   ScrollView,
   StatusBar,
 } from 'react-native';
-import { Bell, Lock, HelpCircle, User, ChevronRight, Settings, LogOut } from 'react-native-feather';
+import {
+  Bell,
+  Lock,
+  HelpCircle,
+  User,
+  ChevronRight,
+  Settings,
+  LogOut,
+} from 'react-native-feather';
 
-export default function SettingsScreen() {
+export default function SettingsScreen({ navigation }) {
   const [notifications, setNotifications] = useState(true);
 
-  const SettingsItem = ({ icon: Icon, title, subtitle, isSwitch, value, onValueChange, showArrow }) => (
-    <TouchableOpacity 
+  const handleLogout = async () => {
+    try {
+      await AsyncStorage.clear();
+      navigation.navigate("Login");
+    } catch (error) {
+      console.error("Error clearing AsyncStorage:", error);
+    }
+  };
+
+  const SettingsItem = ({
+    icon: Icon,
+    title,
+    subtitle,
+    isSwitch,
+    value,
+    onValueChange,
+    showArrow,
+    onPress,
+  }) => (
+    <TouchableOpacity
       style={styles.settingsItem}
+      onPress={onPress}
       disabled={isSwitch}
       activeOpacity={isSwitch ? 1 : 0.7}
     >
@@ -46,7 +74,7 @@ export default function SettingsScreen() {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-      
+
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Settings</Text>
@@ -106,7 +134,7 @@ export default function SettingsScreen() {
             icon={LogOut}
             title="Log Out"
             subtitle="Sign out of your account"
-            showArrow
+            onPress={handleLogout}
           />
         </View>
 

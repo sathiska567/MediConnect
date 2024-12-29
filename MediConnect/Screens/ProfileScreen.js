@@ -25,7 +25,7 @@ export default function ProfileScreen({ navigation }) {
     phone: '+1 234 567 8900',
     location: 'New York, USA',
     joinedDate: 'Joined January 2024',
-    profilePic: require('../assets/splash.png'),
+    profilePic: require('../assets/men.jpg'),
   };
 
   const handleNavigate = async()=>{

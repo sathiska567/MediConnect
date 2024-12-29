@@ -1,4 +1,3 @@
-// LoginScreen.js
 import React, { useState } from 'react';
 import {
   View,
@@ -16,8 +15,9 @@ import {
   Animated,
   StatusBar,
 } from 'react-native';
-import img from '../assets/medicare.png';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
+import img from '../assets/medicare.png';
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
@@ -41,38 +41,18 @@ export default function LoginScreen({ navigation }) {
   };
 
   const validateField = (field) => {
-    let newErrors = { ...errors };
-    if (field === 'email') {
-      newErrors.email = validateEmail(email);
-    }
-    if (field === 'password') {
-      newErrors.password = validatePassword(password);
-    }
+    const newErrors = { ...errors };
+    if (field === 'email') newErrors.email = validateEmail(email);
+    if (field === 'password') newErrors.password = validatePassword(password);
     setErrors(newErrors);
   };
 
   const shakeError = () => {
     Animated.sequence([
-      Animated.timing(shakeAnimation, {
-        toValue: 10,
-        duration: 100,
-        useNativeDriver: true
-      }),
-      Animated.timing(shakeAnimation, {
-        toValue: -10,
-        duration: 100,
-        useNativeDriver: true
-      }),
-      Animated.timing(shakeAnimation, {
-        toValue: 10,
-        duration: 100,
-        useNativeDriver: true
-      }),
-      Animated.timing(shakeAnimation, {
-        toValue: 0,
-        duration: 100,
-        useNativeDriver: true
-      })
+      Animated.timing(shakeAnimation, { toValue: 10, duration: 100, useNativeDriver: true }),
+      Animated.timing(shakeAnimation, { toValue: -10, duration: 100, useNativeDriver: true }),
+      Animated.timing(shakeAnimation, { toValue: 10, duration: 100, useNativeDriver: true }),
+      Animated.timing(shakeAnimation, { toValue: 0, duration: 100, useNativeDriver: true }),
     ]).start();
   };
 
@@ -81,10 +61,7 @@ export default function LoginScreen({ navigation }) {
     const emailError = validateEmail(email);
     const passwordError = validatePassword(password);
 
-    setErrors({
-      email: emailError,
-      password: passwordError
-    });
+    setErrors({ email: emailError, password: passwordError });
 
     if (emailError || passwordError) {
       shakeError();
@@ -93,19 +70,18 @@ export default function LoginScreen({ navigation }) {
 
     setIsSubmitting(true);
     try {
-      console.log(email,password);
-      const response = await axios.post("http://localhost:8080/api/v1/auth/login" , {email,password})
-      console.log(response);
+      const response = await axios.post("http://localhost:8080/api/v1/auth/login", { email, password });
+      // console.log(response.data.data.user.name);
+      // const name = response.data.data.user.name
 
-      if(response.data.success){
+      if (response.data.success) {
+        localStorage.setItem("email" , response.data.data.user.email);
         navigation.navigate('Home');
+      } else {
+        alert('Login Failed', response.data.message || 'Invalid credentials, please try again.');
       }
-      else{
-        alert('Error', 'Login failed. Please try again.');
-      }
-      
     } catch (error) {
-       alert('Error', 'Login failed. Please try again.');
+      alert('Something went wrong. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -118,8 +94,6 @@ export default function LoginScreen({ navigation }) {
   const handleSignUpNavigate = () => {
     navigation.navigate('Register');
   };
-
-
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -134,11 +108,7 @@ export default function LoginScreen({ navigation }) {
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.logoContainer}>
-            <Image
-              source={img}
-              style={styles.logo}
-              resizeMode="contain"
-            />
+            <Image source={img} style={styles.logo} resizeMode="contain" />
           </View>
 
           <View style={styles.headerContainer}>
@@ -146,13 +116,15 @@ export default function LoginScreen({ navigation }) {
             <Text style={styles.subtitle}>Sign in to your account</Text>
           </View>
 
-          <Animated.View
-            style={[styles.formContainer, { transform: [{ translateX: shakeAnimation }] }]}
-          >
+          <Animated.View style={[styles.formContainer, { transform: [{ translateX: shakeAnimation }] }]}>
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Email</Text>
               <TextInput
-                style={[styles.input, touched.email && errors.email ? styles.inputError : null, email ? styles.inputFilled : null]}
+                style={[
+                  styles.input,
+                  touched.email && errors.email ? styles.inputError : null,
+                  email ? styles.inputFilled : null,
+                ]}
                 value={email}
                 onChangeText={setEmail}
                 onBlur={() => validateField('email')}
@@ -168,7 +140,11 @@ export default function LoginScreen({ navigation }) {
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Password</Text>
               <TextInput
-                style={[styles.input, touched.password && errors.password ? styles.inputError : null, password ? styles.inputFilled : null]}
+                style={[
+                  styles.input,
+                  touched.password && errors.password ? styles.inputError : null,
+                  password ? styles.inputFilled : null,
+                ]}
                 value={password}
                 onChangeText={setPassword}
                 onBlur={() => validateField('password')}
@@ -181,11 +157,7 @@ export default function LoginScreen({ navigation }) {
               )}
             </View>
 
-            <TouchableOpacity
-              style={styles.forgotPasswordButton}
-              onPress={handleForgotPassword}
-              activeOpacity={0.7}
-            >
+            <TouchableOpacity style={styles.forgotPasswordButton} onPress={handleForgotPassword} activeOpacity={0.7}>
               <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
             </TouchableOpacity>
 

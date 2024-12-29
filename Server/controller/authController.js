@@ -95,4 +95,21 @@ const authLoginController = async(req,res)=>{
   }
 }
 
-module.exports = { authController , authLoginController };
+const authOneUserDetailsController = async(req,res)=>{
+  try {
+    const data = await authModel.findOne({email:req.body.email})
+    return res.status(200).send({
+      success:true,
+      message:"User Details Fetch Successfully",
+      data: {
+        user: data, 
+      },
+    })
+  } catch (error) {
+    return res.status(400).send({
+      success:false,
+    })
+  }
+}
+
+module.exports = { authController , authLoginController , authOneUserDetailsController };

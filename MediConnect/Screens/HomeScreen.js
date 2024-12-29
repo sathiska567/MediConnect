@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import React, { useEffect, useState } from 'react';
 import {
@@ -41,24 +42,40 @@ const healthServices = [
   },
 ];
 
-export default function HomeScreen({navigation}) {
+export default function HomeScreen({ navigation }) {
   const [hospitals, setHospitals] = useState([]);
   const [totalReacts, setTotalReacts] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  const [name , setName] = useState('')
+
+  const getUserDetails = async()=>{
+    try {
+      const email = localStorage.getItem('email')
+      const data = await axios.post("http://localhost:8080/api/v1/auth/oneUser" , {email})
+
+      // console.log(data.data.data.user.name);
+      setName(data.data.data.user.name)
+      
+    } catch (error) {
+      alert("Data Fetch have an error")
+    }
+  }
+
+  useEffect(()=>{
+    getUserDetails()
+  },[])
 
   const user = {
-    name: 'John Doe',
-    profilePic: require('../assets/splash.png'),
+    name: name,
+    profilePic: require('../assets/men.jpg'),
   };
 
   useEffect(() => {
     const fetchHospitals = async () => {
       try {
-        const response = await fetch(
-          'https://www.communitybenefitinsight.org/api/get_hospitals.php?state=NC'
-        );
-        const data = await response.json();
-
+        const response = await axios.get("http://localhost:8080/api/v1/get/hospitals")
+        console.log(response);
+        setHospitals(response.data.data);
       } catch (error) {
         console.error('Error fetching data:', error);
       } finally {
@@ -69,24 +86,25 @@ export default function HomeScreen({navigation}) {
     fetchHospitals();
   }, []);
 
-  const handleSingleCard = async()=>{
+  const handleSingleCard = async (service) => {
     try {
-      navigation.navigate('SingleCard')
+      // console.log(service);
+      navigation.navigate('SingleCard', { service: service })
     } catch (error) {
       alert("Have an error while navigate to single card")
     }
   }
 
-  const ServiceCard = ({ title, image, description }) => (
+  const ServiceCard = ({ title, image, description, service }) => (
     <TouchableOpacity style={styles.card} activeOpacity={0.7}>
       <Image source={image} style={styles.cardImage} resizeMode="cover" />
       <View style={styles.cardContent}>
         <Text style={styles.cardTitle}>{title}</Text>
         <Text style={styles.cardDescription}>{description}</Text>
-        <TouchableOpacity onPress={handleSingleCard} >
-        <View style={styles.cardButton}>
-          <Text style={styles.buttonText}>Learn More</Text>
-        </View>
+        <TouchableOpacity onPress={() => handleSingleCard(service)} >
+          <View style={styles.cardButton}>
+            <Text style={styles.buttonText}>Learn More</Text>
+          </View>
         </TouchableOpacity>
       </View>
     </TouchableOpacity>
@@ -115,12 +133,13 @@ export default function HomeScreen({navigation}) {
           contentContainerStyle={styles.scrollContent}
         >
           <View style={styles.servicesGrid}>
-            {healthServices.map((service) => (
+            {hospitals.map((service) => (
               <ServiceCard
-                key={service.id}
-                title={service.title}
+                key={service.hospital_id}
+                title={service.name}
                 image={service.image}
-                description={service.description}
+                description={service.street_address}
+                service={service}
               />
             ))}
           </View>
@@ -172,7 +191,7 @@ const styles = StyleSheet.create({
   mainContent: {
     flex: 1,
     paddingTop: 34,
-    paddingBottom:20
+    paddingBottom: 20
   },
   sectionTitle: {
     fontSize: 22,
